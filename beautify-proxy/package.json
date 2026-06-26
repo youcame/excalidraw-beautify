@@ -1,0 +1,13 @@
+{
+  "name": "excalidraw-beautify-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tiny DeepSeek proxy for the Excalidraw AI 美化 feature",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

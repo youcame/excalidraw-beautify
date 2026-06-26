@@ -1,0 +1,24 @@
+# AI 美化 DeepSeek proxy for excalidraw.saycraft.ai.
+# The static frontend is served directly by the host nginx (see the vhost conf);
+# only the key-holding proxy needs to run as a service.
+services:
+  beautify-proxy:
+    build:
+      context: ./beautify-proxy
+    container_name: excalidraw-beautify-proxy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8787:8787"
+    environment:
+      PORT: "8787"
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      DEEPSEEK_BASE_URL: "${DEEPSEEK_BASE_URL:-https://api.deepseek.com}"
+      DEEPSEEK_MODEL: "${DEEPSEEK_MODEL:-deepseek-v4-flash}"
+      # Requests are same-origin via nginx; lock CORS to the demo domain.
+      ALLOWED_ORIGIN: "${ALLOWED_ORIGIN:-https://excalidraw.saycraft.ai}"
+      RATE_LIMIT_PER_MIN: "${RATE_LIMIT_PER_MIN:-20}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8787/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

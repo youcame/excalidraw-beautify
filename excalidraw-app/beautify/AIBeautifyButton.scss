@@ -1,0 +1,106 @@
+// Lives inside Excalidraw's .excalidraw-ui-top-right flex row, so it sits in the
+// top bar next to the native controls (no overlap). The guide bubble is
+// absolutely positioned below the button.
+.beautify {
+  position: relative;
+  display: inline-flex;
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2.5rem;
+    padding: 0 0.9rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(135deg, #6965db 0%, #8b5cf6 60%, #d946ef 100%);
+    box-shadow: 0 4px 14px rgba(105, 101, 219, 0.4);
+    transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(105, 101, 219, 0.5);
+    }
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    &:disabled {
+      cursor: default;
+      filter: saturate(0.7);
+    }
+
+    &--done {
+      background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    }
+    &--error {
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    }
+  }
+
+  &__spinner {
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: beautify-spin 0.7s linear infinite;
+  }
+
+  &__bubble {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    right: 0;
+    max-width: 14rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #fff;
+    background: #1e1e2e;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    white-space: nowrap;
+    z-index: 20;
+    animation: beautify-bob 1.6s ease-in-out infinite;
+
+    &-tail {
+      position: absolute;
+      top: -5px;
+      right: 1.5rem;
+      width: 10px;
+      height: 10px;
+      background: #1e1e2e;
+      transform: rotate(45deg);
+      border-radius: 2px;
+    }
+  }
+}
+
+@keyframes beautify-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes beautify-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beautify__bubble {
+    animation: none;
+  }
+  .beautify__spinner {
+    animation-duration: 1.4s;
+  }
+}
