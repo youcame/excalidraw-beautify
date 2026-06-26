@@ -66,19 +66,14 @@ const layoutBoxes = (boxes: readonly ExcalidrawElement[]): Map<string, Box> => {
   return placed;
 };
 
-/** Point on box `b`'s edge along the ray toward (tx, ty). */
-const edgePoint = (b: Box, tx: number, ty: number): [number, number] => {
-  const cx = b.x + b.w / 2;
-  const cy = b.y + b.h / 2;
-  const dx = tx - cx;
-  const dy = ty - cy;
-  if (dx === 0 && dy === 0) {
-    return [cx, cy];
+/** Normalized [0..1] edge-midpoint of box `from` on the side facing box `to`. */
+const edgeFixedPoint = (from: Box, to: Box): [number, number] => {
+  const dx = to.x + to.w / 2 - (from.x + from.w / 2);
+  const dy = to.y + to.h / 2 - (from.y + from.h / 2);
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx >= 0 ? [1, 0.5] : [0, 0.5];
   }
-  const sx = dx ? b.w / 2 / Math.abs(dx) : Infinity;
-  const sy = dy ? b.h / 2 / Math.abs(dy) : Infinity;
-  const t = Math.min(sx, sy);
-  return [cx + dx * t, cy + dy * t];
+  return dy >= 0 ? [0.5, 1] : [0.5, 0];
 };
 
 export const localBeautify = (
@@ -139,11 +134,18 @@ export const localBeautify = (
         strokeStyle: "solid",
         roughness: 1,
       };
-      if (sb && eb) {
-        const sc: [number, number] = [sb.x + sb.w / 2, sb.y + sb.h / 2];
-        const ec: [number, number] = [eb.x + eb.w / 2, eb.y + eb.h / 2];
-        const [sx, sy] = edgePoint(sb, ec[0], ec[1]);
-        const [ex, ey] = edgePoint(eb, sc[0], sc[1]);
+      if (sb && eb && s && t) {
+        // This Excalidraw uses FixedPointBinding (mode + normalized fixedPoint),
+        // NOT focus/gap. restoreElements derives those from the *messy* layout,
+        // so after we move boxes a drag re-routes the arrow back into the box
+        // (penetration). Rebind to the edge-midpoint facing the other box with
+        // mode "orbit" (arrow stays OUTSIDE the shape) → clean on drag.
+        const fps = edgeFixedPoint(sb, eb);
+        const fpe = edgeFixedPoint(eb, sb);
+        const sx = sb.x + fps[0] * sb.w;
+        const sy = sb.y + fps[1] * sb.h;
+        const ex = eb.x + fpe[0] * eb.w;
+        const ey = eb.y + fpe[1] * eb.h;
         base.x = sx;
         base.y = sy;
         base.width = ex - sx;
@@ -152,12 +154,8 @@ export const localBeautify = (
           [0, 0],
           [ex - sx, ey - sy],
         ];
-        // Reset the bindings to center-aim (focus 0). restoreElements recomputed
-        // focus/gap from the *messy* layout; without this reset Excalidraw would
-        // re-route the arrow back to that stale geometry the moment a box is
-        // dragged, re-introducing overlaps. focus 0 keeps it edge-to-edge.
-        base.startBinding = { ...a.startBinding, focus: 0, gap: 4 };
-        base.endBinding = { ...a.endBinding, focus: 0, gap: 4 };
+        base.startBinding = { elementId: s, mode: "orbit", fixedPoint: fps };
+        base.endBinding = { elementId: t, mode: "orbit", fixedPoint: fpe };
       }
       return newElementWith(e, base as Partial<ExcalidrawLinearElement>);
     }
