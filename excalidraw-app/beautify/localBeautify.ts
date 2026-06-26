@@ -152,6 +152,12 @@ export const localBeautify = (
           [0, 0],
           [ex - sx, ey - sy],
         ];
+        // Reset the bindings to center-aim (focus 0). restoreElements recomputed
+        // focus/gap from the *messy* layout; without this reset Excalidraw would
+        // re-route the arrow back to that stale geometry the moment a box is
+        // dragged, re-introducing overlaps. focus 0 keeps it edge-to-edge.
+        base.startBinding = { ...a.startBinding, focus: 0, gap: 4 };
+        base.endBinding = { ...a.endBinding, focus: 0, gap: 4 };
       }
       return newElementWith(e, base as Partial<ExcalidrawLinearElement>);
     }
