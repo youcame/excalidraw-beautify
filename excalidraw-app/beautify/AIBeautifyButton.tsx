@@ -8,21 +8,19 @@ import "./AIBeautifyButton.scss";
 
 type Status = "idle" | "loading" | "done" | "error";
 
-const HINT_DISMISSED_KEY = "beautify-used";
-
 interface AIBeautifyButtonProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
 }
 
 /**
  * The 「美化」 button, rendered inside Excalidraw's top-right control row. A
- * bobbing guide bubble below it nudges first-time visitors to click.
+ * bobbing guide bubble below it shows on load and disappears once the user
+ * clicks 美化. Dismissal is session-only (not persisted) — every refresh shows
+ * the bubble again.
  */
 export const AIBeautifyButton = ({ excalidrawAPI }: AIBeautifyButtonProps) => {
   const [status, setStatus] = useState<Status>("idle");
-  const [showHint, setShowHint] = useState(
-    () => localStorage.getItem(HINT_DISMISSED_KEY) !== "1",
-  );
+  const [showHint, setShowHint] = useState(true);
 
   useEffect(() => {
     if (status === "done") {
@@ -40,7 +38,6 @@ export const AIBeautifyButton = ({ excalidrawAPI }: AIBeautifyButtonProps) => {
       return;
     }
     setShowHint(false);
-    localStorage.setItem(HINT_DISMISSED_KEY, "1");
     setStatus("loading");
     try {
       await beautifyScene(excalidrawAPI);
